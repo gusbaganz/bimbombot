@@ -10,10 +10,20 @@ const app = new App({
  
 (async () => {
     await app.start(process.env.PORT || 12000);
- if (new Date().getHours() > 16) {say(`Hello <@${message.user}>, it is 5pm in Rio de Janeiro. Click <https://open.spotify.com/track/45gBYIbizYRUtvVFsRIHAu?si=9d3eab54fc934411|here.>`)}
- else {say(`Sorry <@${message.user}>, back to work! It's not 5pm in Rio de Janeiro yet.`)}
-;
-    });
- 
- 
+      app.message('?', async ({ message, say }) => {
+if (new Date().getUTCHours() > 20) {say(`Hello <@${message.user}>, it's past 5pm in Rio de Janeiro. Click <https://open.spotify.com/track/45gBYIbizYRUtvVFsRIHAu?si=9d3eab54fc934411|here.>`)} else {say(`Sorry <@${message.user}>, back to work! It's not 5pm in Rio de Janeiro yet.`)}}
+
+    ,);})
+
     console.log(`⚡️ Bolt app is running!`);
+;
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+tomorrow.setHours(16, 0, 0);
+;
+ (async () => {
+  const result = await client.chat.scheduleMessage({
+    channel: C05D5B91DRV,
+    text: "Clock out and click <https://open.spotify.com/track/45gBYIbizYRUtvVFsRIHAu?si=9d3eab54fc934411|here>, it's 5PM in Rio!",
+    post_at: tomorrow.getTime() 
+  });})
