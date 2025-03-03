@@ -1,0 +1,80 @@
+require('dotenv').config();
+ 
+const axios = require('axios');
+const { App } = require('@slack/bolt');
+
+// Debug logging for environment variables
+console.log('Checking environment variables...');
+console.log('Signing Secret:', process.env['SLACK_SIGNING_SECRET'] ? 'Present' : 'Missing');
+console.log('Bot Token:', process.env['SLACK_BOT_TOKEN'] ? 'Present' : 'Missing');
+console.log('Channel ID:', process.env['SLACK_CHANNEL_ID'] ? 'Present' : 'Missing');
+
+const signingSecret = process.env['SLACK_SIGNING_SECRET'];
+const botToken = process.env['SLACK_BOT_TOKEN'];
+
+const app = new App({
+    signingSecret: signingSecret,
+    token: botToken,
+    socketMode: true,
+    appToken: process.env['SLACK_APP_TOKEN']
+});
+
+(async () => {
+    try {
+        console.log('Starting app...');
+        await app.start();
+        console.log('App started successfully!');
+ 
+        // Log all messages for debugging
+        app.message(async ({ message, say }) => {
+            console.log('Received any message:', message);
+        });
+
+        // Handle question mark messages
+        app.message('?', async ({ message, say }) => {
+            console.log('Received question mark message:', message);
+            try {
+                const currentHour = new Date().getHours();
+                console.log('Current hour:', currentHour);
+                
+                if (currentHour >= 16) {
+                    console.log('Sending 5pm message');
+                    await say(`Clock out and click <https://open.spotify.com/track/45gBYIbizYRUtvVFsRIHAu?si=9d3eab54fc934411|here>, <@${message.user}>, it's 5pm in Rio de Janeiro!`);
+                } else {
+                    console.log('Sending not 5pm message');
+                    await say(`Sorry <@${message.user}>, back to work! It's not 5pm in Rio de Janeiro yet.`);
+                }
+                console.log('Message sent successfully');
+            } catch (error) {
+                console.error('Error sending message:', error.message);
+                console.error('Error details:', error);
+            }
+        });
+
+        // Schedule message for tomorrow at 5 PM
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(16, 0, 0, 0);
+        
+        console.log('Attempting to schedule message for:', tomorrow.toISOString());
+        console.log('Channel ID being used:', process.env['SLACK_CHANNEL_ID']);
+
+        try {
+            const result = await app.client.chat.scheduleMessage({
+                channel: process.env['SLACK_CHANNEL_ID'],
+                text: "Clock out and click <https://open.spotify.com/track/45gBYIbizYRUtvVFsRIHAu?si=9d3eab54fc934411|here>, it's 5PM in Rio!",
+                post_at: Math.floor(tomorrow.getTime() / 1000)
+            });
+            console.log('Schedule message result:', result);
+        } catch (error) {
+            console.error('Error scheduling message:', error.message);
+            console.error('Error details:', error);
+        }
+
+        console.log('Message handlers registered');
+        console.log(`⚡️ Bolt app is running!`);
+    } catch (error) {
+        console.error('Error starting app:', error.message);
+        console.error('Error details:', error);
+    }
+})();
