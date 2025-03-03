@@ -34,10 +34,12 @@ const app = new App({
         app.message('?', async ({ message, say }) => {
             console.log('Received question mark message:', message);
             try {
-                const currentHour = new Date().getHours();
-                console.log('Current hour:', currentHour);
+                // Get current time in Rio de Janeiro
+                const rioTime = new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' });
+                const currentHour = new Date(rioTime).getHours();
+                console.log('Current hour in Rio:', currentHour);
                 
-                if (currentHour >= 16) {
+                if (currentHour >= 17) { // 5 PM in Rio
                     console.log('Sending 5pm message');
                     await say(`Clock out and click <https://open.spotify.com/track/45gBYIbizYRUtvVFsRIHAu?si=9d3eab54fc934411|here>, <@${message.user}>, it's 5pm in Rio de Janeiro!`);
                 } else {
@@ -51,10 +53,10 @@ const app = new App({
             }
         });
 
-        // Schedule message for tomorrow at 5 PM
+        // Schedule message for tomorrow at 5 PM Rio time
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(16, 0, 0, 0);
+        tomorrow.setHours(17, 0, 0, 0); // 5 PM Rio time
         
         console.log('Attempting to schedule message for:', tomorrow.toISOString());
         console.log('Channel ID being used:', process.env['SLACK_CHANNEL_ID']);
